@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{% block title %}Event Countdown{% endblock %}</title>
+
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    /* ---------- Theme variables ---------- */
+    :root{
+    --bg: #f7fafc;
+    --card-bg: #ffffff;
+    --text: #0f1724;
+    --muted: #6b7280;
+    --accent: #0ea5a4; /* teal accent */
+    --accent-contrast: #ffffff; /* text on accent */
+    --nav-bg: rgba(255,255,255,0.9);
+    --shadow: 0 10px 25px rgba(16,24,40,0.06);
+    --navbar-btn-light: #04262a; /* fallback for light theme buttons if needed */
+    }
+
+    [data-theme="dark"] {
+    --bg: #07111a;
+    --card-bg: #0e1720;
+    --text: #e6eef8;
+    --muted: #9aa6b2;
+    --accent: #0ea5a4;
+    --accent-contrast: #04262a; /* kept but not used for navbar text */
+    --nav-bg: rgba(10,16,22,0.85);
+    --shadow: 0 10px 25px rgba(3,7,14,0.6);
+    --navbar-btn-light: #e6eef8; /* ensure navbar buttons are light */
+    }
+
+    /* ---------- Global ---------- */
+    html,body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    }
+
+    a { color: var(--accent); }
+    .container { max-width: 980px; }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+    background: var(--nav-bg);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .navbar .navbar-brand {
+    color: var(--text);
+    font-weight: 600;
+    }
+    /* ensure navbar buttons are bright in both themes, especially dark */
+    .navbar .btn {
+    color: var(--navbar-btn-light);
+    transition: all .18s ease;
+    }
+    [data-theme="dark"] .navbar {
+      border-bottom-color: rgba(255,255,255,0.04);
+    }
+
+    /* outline for toggle button to be visible in dark */
+    .theme-toggle-btn {
+    width: 42px;
+    height: 34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 6px;
+    font-size: 18px;
+    }
+
+    /* Clock style */
+    #clock {
+    font-size: 1rem;
+    color: var(--text);
+    }
+
+    /* ---------- Card / inputs ---------- */
+    .card-count {
+    background: var(--card-bg);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    color: var(--text);
+    }
+
+    .form-label, label {
+    color: var(--text);
+    opacity: 0.95;
+    font-weight: 600;
+    }
+    .form-text {
+    color: var(--muted);
+    opacity: 0.95;
+    }
+
+    .form-control,
+    .form-select,
+    input[type="datetime-local"],
+    input[type="text"],
+    input[type="datetime"],
+    textarea {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: none;
+    border-radius: 6px;
+    }
+
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+    border-color: rgba(255,255,255,0.06);
+    color: var(--text);
+    }
+
+    .form-control::placeholder,
+    .form-select::placeholder {
+    color: rgba(255,255,255,0.55);
+    opacity: 0.85;
+    }
+
+    .card-count .form-label { color: var(--muted); }
+
+    .small-muted { color: var(--muted); opacity: 0.95; }
+
+    .form-control:focus, .form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.12rem rgba(13,110,253,0.12);
+    border-color: var(--accent);
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn-primary {
+    background: var(--accent) !important;
+    border-color: rgba(0,0,0,0.06) !important;
+    color: var(--accent-contrast) !important;
+    transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(14,165,164,0.16);
+    }
+
+    /* outline-secondary: make it readable and "lit" in dark */
+    .btn-outline-secondary {
+    color: var(--text);
+    border-color: rgba(0,0,0,0.06);
+    background: transparent;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+    }
+
+    .btn-outline-secondary:hover,
+    .btn-outline-secondary:focus {
+    background: rgba(14,165,164,0.06);
+    color: var(--accent-contrast);
+    border-color: rgba(14,165,164,0.28);
+    }
+
+    /* Dark-specific button tweaks */
+    [data-theme="dark"] .btn-outline-secondary {
+      color: var(--navbar-btn-light);
+      border-color: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+    }
+    [data-theme="dark"] .btn-outline-secondary:hover,
+    [data-theme="dark"] .btn-outline-secondary:focus {
+      background: rgba(14,165,164,0.08);
+      color: #04262a; /* dark text on slightly teal bg for contrast */
+      border-color: rgba(14,165,164,0.32);
+      color: white;
+    }
+
+    /* make primary button stand out in dark as well */
+    [data-theme="dark"] .btn-primary {
+      box-shadow: 0 6px 18px rgba(14,165,164,0.12);
+    }
+    [data-theme="dark"] .btn-primary:hover {
+      box-shadow: 0 12px 30px rgba(14,165,164,0.18);
+    }
+
+    /* ensure small outline buttons inside cards are readable */
+    .card .btn-outline-secondary {
+      padding: .32rem .5rem;
+      font-size: .85rem;
+    }
+
+    /* ---------- Toast container ---------- */
+    .toast-container-custom {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    }
+    .toast-container-custom .toast { pointer-events: auto; }
+
+    /* ---------- Mobile-first tweaks ---------- */
+    .hero { padding: 28px 12px; text-align: center; }
+    .count-number { font-size: 2.2rem; font-weight: 700; }
+    @media (max-width: 576px) {
+    .count-number { font-size: 1.6rem; }
+    .navbar-brand { font-size: 1rem; }
+    .card-count { padding: 14px; border-radius: 12px; }
+    }
+
+    /* small utility */
+    .muted-sm { font-size: .9rem; color: var(--muted); }
+
+    /* footer visibility */
+    footer { color: var(--muted); }
+    [data-theme="dark"] footer { color: var(--muted); opacity: 0.95; }
+
+    /* ---------- Footer highlight ---------- */
+.footer-brand {
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    transition: all .25s ease;
+}
+
+/* Light mode */
+.footer-brand {
+    color: #0ea5a4; /* نفس accent */
+    text-shadow: 0 2px 8px rgba(14,165,164,0.25);
+}
+
+/* Dark mode */
+[data-theme="dark"] .footer-brand {
+    color: #6ef3ec;
+    text-shadow:
+        0 0 6px rgba(110,243,236,0.45),
+        0 0 14px rgba(14,165,164,0.25);
+}
+
+/* Subtle hover (luxury feel) */
+.footer-brand:hover {
+    transform: translateY(-1px);
+    text-shadow:
+        0 6px 18px rgba(14,165,164,0.45);
+}
+
+</style>
+
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg shadow-sm">
+<div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" href="{% url 'create_event' %}">Tick-Tock ⏰</a>
+
+    <!-- Clock in the center -->
+    <div id="clock" class="text-center flex-grow-1 fw-semibold"></div>
+
+    <div class="d-flex align-items-center gap-2">
+    <!-- theme toggle (safe: check in JS if element exists) -->
+    <button id="themeToggle" class="btn btn-outline-secondary theme-toggle-btn" title="Toggle dark / light" type="button">
+        <span id="themeIcon">🌙</span>
+    </button>
+
+    <!-- ONE Create button in navbar (user asked one only) -->
+    <a class="btn btn-outline-secondary" href="{% url 'events_list' %}">Event List</a>
+    <a class="btn btn-primary" href="{% url 'create_event' %}">Create Event</a>
+    </div>
+</div>
+</nav>
+
+<main class="container my-5">
+{% if messages %}
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
+        {{ m }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+
+<!-- Toast container -->
+<div class="toast-container-custom" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<footer class="text-center py-4 footer-brand">
+© ELOSTORA.YT
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// safe helpers
+function safeGet(id) { return document.getElementById(id) || null; }
+
+// Apply theme from localStorage on load
+(function () {
+    const saved = localStorage.getItem('site-theme') || 'light'; // 'light' or 'dark'
+    applySiteTheme(saved);
+
+    const iconEl = safeGet('themeIcon');
+    if (iconEl) iconEl.textContent = saved === 'dark' ? '☀️' : '🌙';
+})();
+
+function applySiteTheme(mode) {
+    if (mode === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('site-theme', 'dark');
+    } else {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('site-theme', 'light');
+    }
+}
+
+// Toggle button (safe attach)
+(function () {
+    const toggle = safeGet('themeToggle');
+    const icon = safeGet('themeIcon');
+    if (!toggle) return;
+    toggle.addEventListener('click', function () {
+    const current = localStorage.getItem('site-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applySiteTheme(next);
+    if (icon) icon.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
+})();
+
+// Utility: show toast (adapts to current theme)
+function showToast(title, body) {
+    const container = safeGet('toastContainer');
+    if (!container) return;
+
+    const id = 't' + Date.now();
+    const theme = (localStorage.getItem('site-theme') || 'light');
+    const toastBgClass = theme === 'dark' ? 'text-bg-dark' : 'text-bg-light';
+
+    const html = `
+    <div id="${id}" class="toast ${toastBgClass} border-0 shadow-sm" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+        <div class="toast-body">
+            <strong>${title}</strong><div class="muted-sm">${body}</div>
+        </div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>`;
+
+    container.insertAdjacentHTML('beforeend', html);
+    const tEl = document.getElementById(id);
+    const bsToast = new bootstrap.Toast(tEl, { delay: 7000 });
+    bsToast.show();
+    tEl.addEventListener('hidden.bs.toast', () => tEl.remove());
+}
+
+// ---------- Clock (Cairo Time) ----------
+function updateClock() {
+    const options = { 
+        timeZone: 'Africa/Cairo', 
+        hour12: false, 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    };
+    const now = new Date();
+    const timeString = now.toLocaleString('en-GB', options);
+    const clockEl = safeGet('clock');
+    if (clockEl) clockEl.textContent = timeString;
+}
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
